@@ -1,0 +1,36 @@
+server:
+  port: 8888
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/system
+    username: root
+    password: 123456
+
+  redis:
+    host: localhost
+    password:
+    port: 6379
+
+#  security:
+#    user:
+#      name: user
+#      password: 111111
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**Mapper.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto #自增id
+
+
+
+icreator:
+  jwt:
+    header: authorization
+    expire: 3600 # 过期时间 单位秒
+    secret: F7frIoCneptp5uFnzOc2mAijifRPK4Ed
+
