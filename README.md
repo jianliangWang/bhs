@@ -1,2 +1,2 @@
 # bhs
-build home system
+Build Home System
