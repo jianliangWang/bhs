@@ -55,6 +55,7 @@ public class SystemUser implements Serializable {
     /**
      * 上次登录时间
      */
+
     private LocalDateTime lastLoginDate;
 
     /**

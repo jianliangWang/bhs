@@ -79,6 +79,7 @@ public class SystemUserController extends BaseController<SystemUser> {
         return ResultJson.success(pageList);
     }
 
+    @PreAuthorize("hasAuthority('system-user-add')")
     @PostMapping("add")
     public ResultJson add(@Validated @RequestBody SystemUserVO systemUserVO) {
         SystemUser systemUser = new SystemUser();
@@ -87,6 +88,7 @@ public class SystemUserController extends BaseController<SystemUser> {
         return userService.add(systemUser);
     }
 
+    @PreAuthorize("hasAuthority('system-user-update')")
     @PostMapping("update")
     public ResultJson update(@RequestBody SystemUserVO systemUserVO) {
         if(systemUserVO.getId() == null){
@@ -98,6 +100,7 @@ public class SystemUserController extends BaseController<SystemUser> {
         return ResultJson.success();
     }
 
+    @PreAuthorize("hasAuthority('system-user-list')")
     @GetMapping("getInfo/{id}")
     public ResultJson getInfo(@PathVariable int id) {
         SystemUser systemUser = userService.getById(id);
@@ -105,6 +108,7 @@ public class SystemUserController extends BaseController<SystemUser> {
         return ResultJson.success(systemUser);
     }
 
+    @PreAuthorize("hasAuthority('system-user-delete')")
     @Transactional
     @PostMapping("delete")
     public ResultJson delete(@RequestBody String[] ids){
@@ -113,6 +117,7 @@ public class SystemUserController extends BaseController<SystemUser> {
         return ResultJson.success();
     }
 
+    @PreAuthorize("hasAuthority('system-user-batchEnable')")
     @PostMapping("updateStatus/{status}")
     public ResultJson updateStatus(@RequestBody Integer[] ids, @PathVariable("status") String status){
         List<SystemUser> updateList = new ArrayList<>();
@@ -126,6 +131,7 @@ public class SystemUserController extends BaseController<SystemUser> {
         return ResultJson.success();
     }
 
+    @PreAuthorize("hasAuthority('system-user-setRole')")
     @GetMapping("/getUserRole/{userId}")
     public ResultJson getUserRole(@PathVariable("userId") Integer userId) {
         List<Integer> roleIds = userService.getRolesByUserId(userId);
@@ -136,15 +142,17 @@ public class SystemUserController extends BaseController<SystemUser> {
         return ResultJson.success(systemUserRoleVO);
     }
 
+    @PreAuthorize("hasAuthority('system-user-setRole-save')")
     @PostMapping("/setRole/{userId}")
     public ResultJson setRole(@PathVariable("userId") Integer userId, @RequestBody Integer [] roles){
         return userService.setRole(userId, roles);
     }
 
     @PostMapping("/resetPassword")
-    public ResultJson resetPassword(@PathVariable int id){
+    public ResultJson resetPassword(Integer id){
         SystemUser systemUser = new SystemUser();
         systemUser.setPassword(bCryptPasswordEncoder.encode(UserConsts.DEFAULT_PASSWORD));
+        systemUser.setId(id);
         userService.updateById(systemUser);
         return ResultJson.success();
     }

@@ -28,8 +28,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/system/authorization")
 public class SystemAuthorizationController {
 
-    @Autowired
-    private ISystemAuthorizationService systemAuthorizationService;
+    private final ISystemAuthorizationService systemAuthorizationService;
+
+    public SystemAuthorizationController(ISystemAuthorizationService systemAuthorizationService) {
+        this.systemAuthorizationService = systemAuthorizationService;
+    }
 
     @GetMapping("list")
     @PreAuthorize("hasAnyAuthority('system-authorization-list')")

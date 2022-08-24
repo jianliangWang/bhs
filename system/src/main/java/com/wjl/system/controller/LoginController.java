@@ -1,6 +1,5 @@
 package com.wjl.system.controller;
 
-import cn.hutool.core.map.MapUtil;
 import com.google.code.kaptcha.Producer;
 import com.wjl.common.ResultJson;
 import com.wjl.consts.CaptchaConsts;
@@ -9,6 +8,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.imageio.ImageIO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +39,10 @@ public class LoginController {
         String base64Img = CaptchaConsts.IMAGE_TYPE + encoder.encodeToString(outputStream.toByteArray());
 
         redisUtil.hset(CaptchaConsts.CAPTCHA_HASH_KEY, captchaKey, code, 300);
-        return ResultJson.success(
-            MapUtil.builder().put(CaptchaConsts.CAPTCHA_KEY, captchaKey).put(CaptchaConsts.CAPTCHA_BASE64IMAGE,
-                base64Img).build());
+        Map<String, String> map = new HashMap<>();
+        map.put(CaptchaConsts.CAPTCHA_KEY, captchaKey);
+        map.put(CaptchaConsts.CAPTCHA_BASE64IMAGE, base64Img);
+        return ResultJson.success(map);
 
     }
 

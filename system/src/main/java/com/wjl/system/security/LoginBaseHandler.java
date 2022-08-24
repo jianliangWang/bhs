@@ -1,6 +1,6 @@
 package com.wjl.system.security;
 
-import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson2.JSON;
 import com.wjl.common.ResultJson;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +13,7 @@ public class LoginBaseHandler {
         response.setContentType("application/json;charset=UTF-8");
         ServletOutputStream servletOutputStream = response.getOutputStream();
 
-        servletOutputStream.write(JSONUtil.toJsonStr(result).getBytes(StandardCharsets.UTF_8));
+        servletOutputStream.write(JSON.toJSONString(result).getBytes(StandardCharsets.UTF_8));
 
         servletOutputStream.flush();
         servletOutputStream.close();

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -59,7 +60,7 @@ public class SystemRoleController extends BaseController<SystemRole> {
         this.roleAuthorizationService = roleAuthorizationService;
     }
 
-
+    @PreAuthorize("hasAuthority('system-role-list')")
     @PostMapping("list")
     public ResultJson list(String roleCode) {
 
@@ -69,6 +70,7 @@ public class SystemRoleController extends BaseController<SystemRole> {
         return ResultJson.success(rolePageList);
     }
 
+    @PreAuthorize("hasAuthority('system-role-add')")
     @PostMapping("add")
     public ResultJson add(@Validated @RequestBody SystemRolePO systemRolePO) {
         SystemRole systemRole = new SystemRole();
@@ -77,6 +79,7 @@ public class SystemRoleController extends BaseController<SystemRole> {
         return ResultJson.success();
     }
 
+    @PreAuthorize("hasAuthority('system-role-update')")
     @PostMapping("update")
     public ResultJson update(@RequestBody SystemRolePO systemRolePO) {
         if (systemRolePO.getId() == null) {
@@ -88,6 +91,7 @@ public class SystemRoleController extends BaseController<SystemRole> {
         return ResultJson.success();
     }
 
+    @PreAuthorize("hasAuthority('system-role-list')")
     @GetMapping("getInfo/{id}")
     public ResultJson getInfo(@PathVariable int id) {
         SystemRole systemRole = systemRoleService.getById(id);
@@ -95,6 +99,7 @@ public class SystemRoleController extends BaseController<SystemRole> {
         return ResultJson.success(systemRole);
     }
 
+    @PreAuthorize("hasAuthority('system-role-delete')")
     @Transactional
     @PostMapping("delete")
     public ResultJson delete(@RequestBody String[] ids) {
@@ -106,6 +111,7 @@ public class SystemRoleController extends BaseController<SystemRole> {
         return ResultJson.success();
     }
 
+    @PreAuthorize("hasAuthority('system-role-update')")
     @PostMapping("updateStatus/{status}")
     public ResultJson updateStatus(@RequestBody Integer[] ids, @PathVariable("status") String status) {
         List<SystemRole> updateList = new ArrayList<>();
@@ -119,6 +125,7 @@ public class SystemRoleController extends BaseController<SystemRole> {
         return ResultJson.success();
     }
 
+    @PreAuthorize("hasAuthority('system-role-setAuth')")
     @GetMapping("getAuth/{id}")
     public ResultJson getAuth(@PathVariable String id) {
         List<SystemAuthorizationExt> systemAuthorizationList = authorizationService.menuTreeList();
@@ -133,6 +140,7 @@ public class SystemRoleController extends BaseController<SystemRole> {
         return ResultJson.success(systemRoleAuthorizationVO);
     }
 
+    @PreAuthorize("hasAuthority('system-role-setAuth-save')")
     @Transactional
     @PostMapping("setAuth/{id}")
     public ResultJson setAuth(@PathVariable Integer id, @RequestBody Integer[] authIds){

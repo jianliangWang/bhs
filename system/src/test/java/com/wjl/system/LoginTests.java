@@ -1,20 +1,17 @@
 package com.wjl.system;
 
-import cn.hutool.crypto.SignUtil;
-import cn.hutool.json.JSON;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wjl.system.service.ISystemUserService;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import org.json.JSONObject;
+
+import com.wjl.system.utils.SignUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -91,7 +88,7 @@ public class LoginTests {
 
         Map<String, String> map = new HashMap<>();
         map.put("username","zhangsan");
-        System.out.println(SignUtil.signParamsMd5(map));
+        System.out.println(map);
 
     }
 }

@@ -1,13 +1,8 @@
 package com.wjl.system;
 
-import cn.hutool.json.JSON;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.wjl.system.entity.SystemAuthorization;
 import java.nio.charset.StandardCharsets;
-import org.apache.tomcat.util.http.parser.Authorization;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

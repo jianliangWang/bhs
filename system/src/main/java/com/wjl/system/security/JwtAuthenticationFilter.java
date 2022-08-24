@@ -1,8 +1,8 @@
 package com.wjl.system.security;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.wjl.common.ResultJson;
 import com.wjl.consts.CorsConsts;
 import com.wjl.consts.UserConsts;
@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         throws IOException, ServletException {
 
         String jwt = request.getHeader(CorsConsts.EXPOSED_HEADER);
-        if (StrUtil.isBlankOrUndefined(jwt)) {
+        if (StringUtils.isBlank(jwt)) {
             chain.doFilter(request, response);
             return;
         }
@@ -81,7 +81,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         response.setContentType("application/json;charset=UTF-8");
         ServletOutputStream servletOutputStream = response.getOutputStream();
 
-        servletOutputStream.write(JSONUtil.toJsonStr(result).getBytes(StandardCharsets.UTF_8));
+        servletOutputStream.write(JSON.toJSONString(result).getBytes(StandardCharsets.UTF_8));
 
         servletOutputStream.flush();
         servletOutputStream.close();

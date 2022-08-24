@@ -1,0 +1,69 @@
+package ${package.Controller};
+
+import com.wjl.common.ResultJson;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.RestController;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+
+import ${package.Entity}.${entity};
+import ${package.Service}.${table.serviceName};
+
+/**
+ * <p>
+ * $!{table.comment} 前端控制器
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+@RequestMapping("#if(${package.ModuleName})/${package.ModuleName}#end/#if(${controllerMappingHyphenStyle})${controllerMappingHyphen}#else${table.entityPath}#end")
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} extends  BaseController<${table.entityName}>  {
+#end
+    @Autowired
+    private ${table.serviceName} ${table.entityPath}Service;
+
+    @PostMapping("list")
+    public ResultJson list(){
+        IPage<${table.entityName}> pageList = ${table.entityPath}Service.page(getPage());
+        return ResultJson.success(pageList);
+    }
+
+    @PostMapping("add")
+    public ResultJson add(${table.entityName} ${table.entityName}){
+        ${table.entityPath}Service.save(${table.entityName});
+        return ResultJson.success();
+    }
+
+    @PostMapping("update")
+    public ResultJson update(${table.entityName} ${table.entityName}){
+        ${table.entityPath}Service.updateById(${table.entityName});
+        return ResultJson.success();
+    }
+
+    @PostMapping("delete")
+    public ResultJson delete(Integer id){
+        ${table.entityPath}Service.removeById(id);
+        return ResultJson.success();
+    }
+}
+#end

@@ -17,21 +17,25 @@ import com.wjl.system.mapper.SystemUserRoleMapper;
 import com.wjl.system.service.ISystemRoleService;
 import com.wjl.system.service.ISystemUserRoleService;
 import com.wjl.system.service.ISystemUserService;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author jay
@@ -49,6 +53,7 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
     @Autowired
     private ISystemUserRoleService systemUserRoleService;
 
+    @Cacheable(value = "getAuthorityInfo")
     @Override
     public String getAuthorityInfo(int userId) {
 
@@ -58,12 +63,13 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
             return authorities;
         }
         authorities = authorizationList.stream().map(auth -> "ROLE_" + auth.getRoleCode()).distinct()
-            .collect(Collectors.joining(","));
+                .collect(Collectors.joining(","));
         authorities = authorities.concat(",")
-            .concat(authorizationList.stream().map(UserRoleAuth::getCode).collect(Collectors.joining(",")));
+                .concat(authorizationList.stream().map(UserRoleAuth::getCode).collect(Collectors.joining(",")));
         return authorities;
     }
 
+    @Cacheable(value = "getSystemUserByUsername")
     @Override
     public SystemUser getSystemUserByUsername(String username) {
         QueryWrapper<SystemUser> wrapper = new QueryWrapper<>();
@@ -71,6 +77,7 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
         return this.getOne(wrapper);
     }
 
+    @Cacheable(value = "listUserAuthMenus")
     @Override
     public List<UserRoleAuth> listUserAuthMenus() {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -78,18 +85,19 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
         List<UserRoleAuth> list = systemUserMapper.getNavMenu(userId);
         List<UserRoleAuth> resultList = list.parallelStream().map(item -> {
             List<UserRoleAuth> children =
-                list.stream().filter(c -> c.getParentCode().equals(item.getCode())).collect(Collectors.toList());
+                    list.stream().filter(c -> c.getParentCode().equals(item.getCode())).collect(Collectors.toList());
             item.setChildren(children);
             return item;
         }).filter(rs -> rs.getParentCode().equals(UserConsts.SYSTEM_MENU_ROOT_CODE)).collect(Collectors.toList());
         return resultList;
     }
 
+    @Cacheable(value = "userPage", unless = "#result == null")
     @Override
     public IPage<SystemUserExt> page(Page page, String username) {
         Page<SystemUser> userPage = systemUserMapper.selectPage(page,
-            new QueryWrapper<SystemUser>().like(StringUtils.hasText(username), "username",
-                username));
+                new QueryWrapper<SystemUser>().like(StringUtils.hasText(username), "username",
+                        username));
         IPage<SystemUserExt> pageExt = new Page<>();
         List<SystemUserExt> list = new ArrayList<>();
         userPage.getRecords().forEach(u -> {
@@ -103,7 +111,7 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
         return pageExt;
     }
 
-
+    @CacheEvict(value = "userPage", allEntries = true)
     @Override
     public ResultJson add(SystemUser systemUser) {
         systemUser.setCreateDate(LocalDateTime.now());
@@ -114,16 +122,37 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
         return ResultJson.success();
     }
 
+    @CacheEvict(value = "userPage", allEntries = true)
+    @Override
+    public boolean updateById(SystemUser entity) {
+        if (entity == null) {
+            return false;
+        }
+        if (entity.getId() == null || entity.getId() == 0) {
+            return false;
+        }
+        return systemUserMapper.updateById(entity) > 0;
+    }
+
+    @CacheEvict(value = "userPage", allEntries = true)
+    @Override
+    public boolean removeById(SystemUser entity) {
+        return super.removeById(entity);
+    }
+
+
+    @Cacheable(value = "getRolesByUserId", unless = "#result == null")
     @Override
     public List<Integer> getRolesByUserId(Integer userId) {
         Wrapper<SystemUserRole> wrapper = new QueryWrapper<SystemUserRole>().eq("user_id", userId);
-        return systemUserRoleService.list(wrapper).stream().map(i->i.getRoleId()).collect(Collectors.toList());
+        return systemUserRoleService.list(wrapper).stream().map(i -> i.getRoleId()).collect(Collectors.toList());
     }
 
+    @CacheEvict(value = "getRolesByUserId", allEntries = true)
     @Override
     public ResultJson setRole(Integer userId, Integer[] roleId) {
         List<SystemUserRole> systemUserRoleList = new LinkedList<>();
-        Arrays.asList(roleId).forEach(i->{
+        Arrays.asList(roleId).forEach(i -> {
             SystemUserRole systemUserRole = new SystemUserRole();
             systemUserRole.setUserId(userId);
             systemUserRole.setRoleId(i);

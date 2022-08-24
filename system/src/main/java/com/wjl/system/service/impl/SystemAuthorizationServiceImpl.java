@@ -10,6 +10,8 @@ import com.wjl.system.service.ISystemAuthorizationService;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,9 +26,13 @@ import org.springframework.stereotype.Service;
 public class SystemAuthorizationServiceImpl extends
     ServiceImpl<SystemAuthorizationMapper, SystemAuthorization> implements ISystemAuthorizationService {
 
-    @Autowired
-    private SystemAuthorizationMapper systemAuthorizationMapper;
+    private final SystemAuthorizationMapper systemAuthorizationMapper;
 
+    public SystemAuthorizationServiceImpl(SystemAuthorizationMapper systemAuthorizationMapper) {
+        this.systemAuthorizationMapper = systemAuthorizationMapper;
+    }
+
+    @Cacheable(value = "menuTreeList", unless = "#result == null")
     @Override
     public List<SystemAuthorizationExt> menuTreeList() {
         List<SystemAuthorization> authorizationList = systemAuthorizationMapper.selectList(new QueryWrapper<>());
@@ -43,5 +49,23 @@ public class SystemAuthorizationServiceImpl extends
                 item.setChildren(children);
                 return item;
             }).filter(item -> item.getParentCode().equals(UserConsts.SYSTEM_MENU_ROOT_CODE)).toList();
+    }
+
+    @CacheEvict(value = "menuTreeList", allEntries = true)
+    @Override
+    public boolean save(SystemAuthorization entity) {
+        return super.save(entity);
+    }
+
+    @CacheEvict(value = "menuTreeList", allEntries = true)
+    @Override
+    public boolean updateById(SystemAuthorization entity) {
+        return super.updateById(entity);
+    }
+
+    @CacheEvict(value = "menuTreeList", allEntries = true)
+    @Override
+    public boolean removeById(SystemAuthorization entity) {
+        return super.removeById(entity);
     }
 }
