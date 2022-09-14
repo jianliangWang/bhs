@@ -7,28 +7,26 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wjl.common.ResultJson;
 import com.wjl.consts.UserConsts;
-import com.wjl.system.entity.SystemRole;
 import com.wjl.system.entity.SystemUser;
 import com.wjl.system.entity.SystemUserRole;
 import com.wjl.system.entity.extend.SystemUserExt;
 import com.wjl.system.entity.extend.UserRoleAuth;
 import com.wjl.system.mapper.SystemUserMapper;
-import com.wjl.system.mapper.SystemUserRoleMapper;
 import com.wjl.system.service.ISystemRoleService;
 import com.wjl.system.service.ISystemUserRoleService;
 import com.wjl.system.service.ISystemUserService;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -44,6 +42,8 @@ import org.springframework.util.StringUtils;
 @Service
 public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemUser> implements ISystemUserService {
 
+    private final Logger logger = LoggerFactory.getLogger(SystemUserServiceImpl.class);
+
     @Autowired
     private SystemUserMapper systemUserMapper;
 
@@ -53,7 +53,6 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
     @Autowired
     private ISystemUserRoleService systemUserRoleService;
 
-    @Cacheable(value = "getAuthorityInfo")
     @Override
     public String getAuthorityInfo(int userId) {
 
@@ -63,13 +62,12 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
             return authorities;
         }
         authorities = authorizationList.stream().map(auth -> "ROLE_" + auth.getRoleCode()).distinct()
-                .collect(Collectors.joining(","));
+            .collect(Collectors.joining(","));
         authorities = authorities.concat(",")
-                .concat(authorizationList.stream().map(UserRoleAuth::getCode).collect(Collectors.joining(",")));
+            .concat(authorizationList.stream().map(UserRoleAuth::getCode).collect(Collectors.joining(",")));
         return authorities;
     }
 
-    @Cacheable(value = "getSystemUserByUsername")
     @Override
     public SystemUser getSystemUserByUsername(String username) {
         QueryWrapper<SystemUser> wrapper = new QueryWrapper<>();
@@ -77,7 +75,6 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
         return this.getOne(wrapper);
     }
 
-    @Cacheable(value = "listUserAuthMenus")
     @Override
     public List<UserRoleAuth> listUserAuthMenus() {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -85,19 +82,18 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
         List<UserRoleAuth> list = systemUserMapper.getNavMenu(userId);
         List<UserRoleAuth> resultList = list.parallelStream().map(item -> {
             List<UserRoleAuth> children =
-                    list.stream().filter(c -> c.getParentCode().equals(item.getCode())).collect(Collectors.toList());
+                list.stream().filter(c -> c.getParentCode().equals(item.getCode())).collect(Collectors.toList());
             item.setChildren(children);
             return item;
         }).filter(rs -> rs.getParentCode().equals(UserConsts.SYSTEM_MENU_ROOT_CODE)).collect(Collectors.toList());
         return resultList;
     }
 
-    @Cacheable(value = "userPage", unless = "#result == null")
     @Override
     public IPage<SystemUserExt> page(Page page, String username) {
         Page<SystemUser> userPage = systemUserMapper.selectPage(page,
-                new QueryWrapper<SystemUser>().like(StringUtils.hasText(username), "username",
-                        username));
+            new QueryWrapper<SystemUser>().like(StringUtils.hasText(username), "username",
+                username));
         IPage<SystemUserExt> pageExt = new Page<>();
         List<SystemUserExt> list = new ArrayList<>();
         userPage.getRecords().forEach(u -> {
@@ -111,44 +107,70 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
         return pageExt;
     }
 
-    @CacheEvict(value = "userPage", allEntries = true)
     @Override
     public ResultJson add(SystemUser systemUser) {
         systemUser.setCreateDate(LocalDateTime.now());
         systemUser.setLastLoginDate(LocalDateTime.now());
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("username", systemUser.getUsername());
+        List<SystemUser> userList = systemUserMapper.selectByMap(paramMap);
+        if (userList != null && userList.size() > 0) {
+            return ResultJson.fail("用户名已经存在");
+        }
         if (!save(systemUser)) {
             return ResultJson.fail("添加失败");
         }
         return ResultJson.success();
     }
 
-    @CacheEvict(value = "userPage", allEntries = true)
     @Override
-    public boolean updateById(SystemUser entity) {
-        if (entity == null) {
+    public boolean updateById(SystemUser systemUser) {
+        if (systemUser.getId() == null || systemUser.getId() == 0) {
+            logger.error("用户修改失败，id为空！");
             return false;
         }
-        if (entity.getId() == null || entity.getId() == 0) {
+        systemUser.setUsername(null);
+        return systemUserMapper.updateById(systemUser) > 1;
+    }
+
+    @Override
+    public boolean resetPassword(Integer id, String password) {
+        if (id == null || id == 0) {
             return false;
         }
-        return systemUserMapper.updateById(entity) > 0;
+        SystemUser systemUser = new SystemUser();
+        systemUser.setId(id);
+        systemUser.setPassword(password);
+        return systemUserMapper.updateById(systemUser) > 0;
     }
 
-    @CacheEvict(value = "userPage", allEntries = true)
     @Override
-    public boolean removeById(SystemUser entity) {
-        return super.removeById(entity);
+    public boolean removeByIds(List<Integer> ids) {
+        if (ids == null || ids.size() == 0) {
+            return false;
+        }
+        return systemUserMapper.deleteBatchIds(ids) > 1;
     }
 
+    @Override
+    public boolean updateStatus(List<Integer> ids, String status) {
+        if (ids == null || ids.size() == 0) {
+            logger.error("批量修改用户状态失败，ids为空");
+            return false;
+        }
+        if (org.apache.commons.lang.StringUtils.isBlank(status)) {
+            logger.error("批量修改用户状态失败，状态(status)为空");
+            return false;
+        }
+        return systemUserMapper.updateStatusByIds(ids, status) > 0;
+    }
 
-    @Cacheable(value = "getRolesByUserId", unless = "#result == null")
     @Override
     public List<Integer> getRolesByUserId(Integer userId) {
         Wrapper<SystemUserRole> wrapper = new QueryWrapper<SystemUserRole>().eq("user_id", userId);
         return systemUserRoleService.list(wrapper).stream().map(i -> i.getRoleId()).collect(Collectors.toList());
     }
 
-    @CacheEvict(value = "getRolesByUserId", allEntries = true)
     @Override
     public ResultJson setRole(Integer userId, Integer[] roleId) {
         List<SystemUserRole> systemUserRoleList = new LinkedList<>();

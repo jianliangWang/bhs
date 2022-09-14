@@ -1,13 +1,14 @@
 package com.wjl.system.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wjl.common.ResultJson;
 import com.wjl.system.entity.SystemAuthorization;
 import com.wjl.system.entity.extend.SystemAuthorizationExt;
 import com.wjl.system.service.ISystemAuthorizationService;
-import io.jsonwebtoken.lang.Collections;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author jay
  * @since 2022-04-02
  */
+@Api(tags = "系统权限管理", value = "authorization")
 @RestController
 @RequestMapping("/system/authorization")
 public class SystemAuthorizationController {
@@ -34,48 +36,54 @@ public class SystemAuthorizationController {
         this.systemAuthorizationService = systemAuthorizationService;
     }
 
+    @ApiOperation(value = "权限列表", notes = "查询所有权限，组装成树形结构返回", httpMethod = "GET")
     @GetMapping("list")
     @PreAuthorize("hasAnyAuthority('system-authorization-list')")
     public ResultJson list() {
-        List<SystemAuthorizationExt> treeList = systemAuthorizationService.menuTreeList();
+        List<SystemAuthorizationExt> treeList = systemAuthorizationService.menuTreeList(
+            systemAuthorizationService.menuList());
         return ResultJson.success(treeList);
     }
 
+    @ApiOperation(value = "获取权限信息", notes = "获取单个权限信息", httpMethod = "GET")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "id", value = "权限编号", required = true, dataType = "int")
+    })
     @GetMapping("getInfo/{id}")
     @PreAuthorize("hasAnyAuthority('system-authorization-list')")
     public ResultJson getInfo(@PathVariable("id") Integer id) {
-        SystemAuthorization systemAuthorization =
-            systemAuthorizationService.getOne(new QueryWrapper<SystemAuthorization>().eq("id", id));
+        SystemAuthorization systemAuthorization = systemAuthorizationService.getOneById(id);
         return ResultJson.success(systemAuthorization);
     }
 
+    @ApiOperation(value = "新增权限信息保存", notes = "新增权限信息保存")
     @PostMapping("save")
     @PreAuthorize("hasAnyAuthority('system-authorization-save')")
     public ResultJson save(@RequestBody SystemAuthorization authorization) {
         authorization.setId(null);
-        systemAuthorizationService.save(authorization);
-        return ResultJson.success();
+        if (systemAuthorizationService.save(authorization)) {
+            return ResultJson.success();
+        }
+        return ResultJson.fail("新增失败！");
     }
 
+    @ApiOperation(value = "权限信息修改", notes = "通过id修改权限信息")
     @PostMapping("update")
     @PreAuthorize("hasAnyAuthority('system-authorization-update')")
     public ResultJson update(@RequestBody SystemAuthorization authorization) {
-        systemAuthorizationService.updateById(authorization);
-        return ResultJson.success();
+        if (systemAuthorizationService.updateById(authorization)) {
+            return ResultJson.success();
+        }
+        return ResultJson.fail("修改失败！");
     }
 
+    @ApiOperation(value = "权限信息删除", notes = "通过id删除权限信息，如果存在子菜单不能删除")
     @GetMapping("delete/{id}")
     @PreAuthorize("hasAnyAuthority('system-authorization-delete')")
     public ResultJson delete(@PathVariable("id") Integer id) {
-        /*查询是否有子菜单，有子菜单不允许删除*/
-        String code = systemAuthorizationService.getById(id).getCode();
-        List<SystemAuthorization> list = systemAuthorizationService.list(
-            new QueryWrapper<SystemAuthorization>().eq("parent_code",
-                code));
-        if (Collections.isEmpty(list)) {
-            systemAuthorizationService.removeById(id);
+        if (systemAuthorizationService.removeById(id)) {
             return ResultJson.success();
         }
-        return ResultJson.fail("有子菜单，请先删除子菜单");
+        return ResultJson.fail("删除失败，ID为空或有子菜单");
     }
 }

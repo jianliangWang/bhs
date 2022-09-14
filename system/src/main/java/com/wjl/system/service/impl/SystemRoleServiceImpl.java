@@ -4,13 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wjl.system.entity.SystemRole;
-import com.wjl.system.entity.SystemUserRole;
 import com.wjl.system.mapper.SystemRoleMapper;
 import com.wjl.system.service.ISystemRoleService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import java.util.List;
-
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -38,13 +36,13 @@ public class SystemRoleServiceImpl extends ServiceImpl<SystemRoleMapper, SystemR
         return super.save(entity);
     }
 
-    @CacheEvict(value = "{systemRolePage, listRoleByUserId}", allEntries = true)
+    @CacheEvict(value = {"systemRolePage", "listRoleByUserId"}, allEntries = true)
     @Override
     public boolean updateById(SystemRole entity) {
         return super.updateById(entity);
     }
 
-    @CacheEvict(value = "systemRolePage", allEntries = true)
+    @CacheEvict(value = {"systemRolePage","listRoleByUserId"}, allEntries = true)
     @Override
     public boolean removeById(SystemRole entity) {
         return super.removeById(entity);

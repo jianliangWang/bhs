@@ -41,12 +41,14 @@ public class CaptchaFilter extends OncePerRequestFilter {
         String key = request.getParameter(CaptchaConsts.CAPTCHA_KEY);
         String code = request.getParameter(CaptchaConsts.CAPTCHA_VALUE);
         if (!StringUtils.hasText(code) || !StringUtils.hasText(key)) {
+            redisUtil.del(key);
             throw new CaptchaException("验证码错误");
         }
-        if (!code.equals(redisUtil.hget(CaptchaConsts.CAPTCHA_HASH_KEY, key))) {
+        if (!code.equals(redisUtil.get(key))) {
+            redisUtil.del(key);
             throw new CaptchaException("验证码错误");
         }
-        redisUtil.hdel(CaptchaConsts.CAPTCHA_HASH_KEY, key);
+        redisUtil.del(key);
     }
 
 }

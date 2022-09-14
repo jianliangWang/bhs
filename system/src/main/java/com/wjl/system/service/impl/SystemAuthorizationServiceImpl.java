@@ -7,9 +7,11 @@ import com.wjl.system.entity.SystemAuthorization;
 import com.wjl.system.entity.extend.SystemAuthorizationExt;
 import com.wjl.system.mapper.SystemAuthorizationMapper;
 import com.wjl.system.service.ISystemAuthorizationService;
+import java.time.LocalDateTime;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -26,18 +28,17 @@ import org.springframework.stereotype.Service;
 public class SystemAuthorizationServiceImpl extends
     ServiceImpl<SystemAuthorizationMapper, SystemAuthorization> implements ISystemAuthorizationService {
 
+    private final Logger logger = LoggerFactory.getLogger(SystemAuthorizationServiceImpl.class);
+
     private final SystemAuthorizationMapper systemAuthorizationMapper;
 
     public SystemAuthorizationServiceImpl(SystemAuthorizationMapper systemAuthorizationMapper) {
         this.systemAuthorizationMapper = systemAuthorizationMapper;
     }
 
-    @Cacheable(value = "menuTreeList", unless = "#result == null")
     @Override
-    public List<SystemAuthorizationExt> menuTreeList() {
-        List<SystemAuthorization> authorizationList = systemAuthorizationMapper.selectList(new QueryWrapper<>());
-
-        List<SystemAuthorizationExt> authorizationExtList = authorizationList.stream().map(item -> {
+    public List<SystemAuthorizationExt> menuTreeList(List<SystemAuthorization> systemAuthorizationList) {
+        List<SystemAuthorizationExt> authorizationExtList = systemAuthorizationList.stream().map(item -> {
             SystemAuthorizationExt authorizationExt = new SystemAuthorizationExt();
             BeanUtils.copyProperties(item, authorizationExt);
             return authorizationExt;
@@ -51,21 +52,50 @@ public class SystemAuthorizationServiceImpl extends
             }).filter(item -> item.getParentCode().equals(UserConsts.SYSTEM_MENU_ROOT_CODE)).toList();
     }
 
-    @CacheEvict(value = "menuTreeList", allEntries = true)
+    @Override
+    public SystemAuthorization getOneById(Integer id) {
+        if (id == null || id == 0) {
+            logger.error("通过id查询菜单信息出错，id为空！");
+            return null;
+        }
+        return systemAuthorizationMapper.selectOne(new QueryWrapper<SystemAuthorization>().eq("id", id));
+    }
+
+    @Cacheable(value = "menuList", unless = "#result == null")
+    @Override
+    public List<SystemAuthorization> menuList() {
+        return systemAuthorizationMapper.selectList(new QueryWrapper<>());
+    }
+
+    @CacheEvict(value = {"menuList", "listUserAuthMenus", "getAuthorityInfo"}, allEntries = true)
     @Override
     public boolean save(SystemAuthorization entity) {
+        entity.setUpdateDate(LocalDateTime.now());
+        entity.setCreateDate(LocalDateTime.now());
         return super.save(entity);
     }
 
-    @CacheEvict(value = "menuTreeList", allEntries = true)
+    @CacheEvict(value = "listUserAuthMenus", key = "#com.wjl.system.service.impl.SystemUserServiceImplgetAuthorityInfo", allEntries = true)
     @Override
     public boolean updateById(SystemAuthorization entity) {
+        entity.setUpdateDate(LocalDateTime.now());
         return super.updateById(entity);
     }
 
-    @CacheEvict(value = "menuTreeList", allEntries = true)
+    @CacheEvict(value = {"menuList", "listUserAuthMenus", "getAuthorityInfo"}, allEntries = true)
     @Override
-    public boolean removeById(SystemAuthorization entity) {
-        return super.removeById(entity);
+    public boolean removeById(Integer id) {
+        if (id == null || id == 0) {
+            logger.error("删除权限，id不能为空");
+            return false;
+        }
+        /*查询是否有子菜单，有子菜单不允许删除*/
+        int count = systemAuthorizationMapper.getChildCountByParentId(id);
+        if (count > 0) {
+            logger.error("删除权限，该权限存在子类不允许删除！");
+            return false;
+        }
+        systemAuthorizationMapper.deleteById(id);
+        return true;
     }
 }

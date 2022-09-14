@@ -24,7 +24,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final String[] URL_WHITELIST = {"/login", "/logout", "/captcha", "/favicon.ico"};
+    private static final String[] URL_WHITELIST = {"/login", "/logout", "/captcha", "/favicon.ico", "/swagger-ui"
+        + "/**", "/swagger-resources/**", "/v2/api-docs", "/v3/api-docs/**"};
 
     private final CaptchaFilter captchaFilter;
 

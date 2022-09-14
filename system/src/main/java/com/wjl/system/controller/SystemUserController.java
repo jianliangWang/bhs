@@ -1,12 +1,10 @@
 package com.wjl.system.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wjl.common.ResultJson;
 import com.wjl.consts.UserConsts;
 import com.wjl.system.entity.SystemRole;
 import com.wjl.system.entity.SystemUser;
-import com.wjl.system.entity.SystemUserRole;
 import com.wjl.system.entity.extend.SystemUserExt;
 import com.wjl.system.entity.extend.UserRoleAuth;
 import com.wjl.system.entity.vo.SystemUserRoleVO;
@@ -14,19 +12,15 @@ import com.wjl.system.entity.vo.SystemUserVO;
 import com.wjl.system.service.ISystemRoleService;
 import com.wjl.system.service.ISystemUserRoleService;
 import com.wjl.system.service.ISystemUserService;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.websocket.server.PathParam;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.Mapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,12 +47,12 @@ public class SystemUserController extends BaseController<SystemUser> {
 
     private final ISystemRoleService roleService;
 
-    public SystemUserController(ISystemUserService userService, BCryptPasswordEncoder bCryptPasswordEncoder,
-        ISystemUserRoleService userRoleService, ISystemRoleService roleService) {
+    public SystemUserController(ISystemUserService userService, ISystemUserRoleService userRoleService,
+        ISystemRoleService roleService, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userService = userService;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.userRoleService = userRoleService;
         this.roleService = roleService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     /**
@@ -67,7 +61,6 @@ public class SystemUserController extends BaseController<SystemUser> {
      */
     @PostMapping("getLeftMenus")
     public ResultJson getLeftMenus() {
-
         List<UserRoleAuth> leftMenus = userService.listUserAuthMenus();
         return ResultJson.success(leftMenus);
     }
@@ -91,7 +84,7 @@ public class SystemUserController extends BaseController<SystemUser> {
     @PreAuthorize("hasAuthority('system-user-update')")
     @PostMapping("update")
     public ResultJson update(@RequestBody SystemUserVO systemUserVO) {
-        if(systemUserVO.getId() == null){
+        if (systemUserVO.getId() == null) {
             return ResultJson.fail("修改失败，id不能为空");
         }
         SystemUser systemUser = new SystemUserExt();
@@ -111,24 +104,20 @@ public class SystemUserController extends BaseController<SystemUser> {
     @PreAuthorize("hasAuthority('system-user-delete')")
     @Transactional
     @PostMapping("delete")
-    public ResultJson delete(@RequestBody String[] ids){
-        userService.removeByIds(Arrays.asList(ids));
-        userRoleService.remove(new QueryWrapper<SystemUserRole>().in("user_id", ids));
+    public ResultJson delete(@RequestBody Integer[] ids) {
+        List<Integer> userIds = Arrays.asList(ids);
+        userService.removeByIds(userIds);
+        userRoleService.removeByUserIds(userIds);
         return ResultJson.success();
     }
 
     @PreAuthorize("hasAuthority('system-user-batchEnable')")
     @PostMapping("updateStatus/{status}")
-    public ResultJson updateStatus(@RequestBody Integer[] ids, @PathVariable("status") String status){
-        List<SystemUser> updateList = new ArrayList<>();
-        for (Integer id : ids) {
-            SystemUser systemUser = new SystemUser();
-            systemUser.setStatus(status);
-            systemUser.setId(id);
-            updateList.add(systemUser);
+    public ResultJson updateStatus(@RequestBody Integer[] ids, @PathVariable("status") String status) {
+        if(userService.updateStatus(Arrays.asList(ids), status)){
+            return ResultJson.success();
         }
-        userService.updateBatchById(updateList);
-        return ResultJson.success();
+        return ResultJson.fail("更新状态失败");
     }
 
     @PreAuthorize("hasAuthority('system-user-setRole')")
@@ -144,16 +133,13 @@ public class SystemUserController extends BaseController<SystemUser> {
 
     @PreAuthorize("hasAuthority('system-user-setRole-save')")
     @PostMapping("/setRole/{userId}")
-    public ResultJson setRole(@PathVariable("userId") Integer userId, @RequestBody Integer [] roles){
+    public ResultJson setRole(@PathVariable("userId") Integer userId, @RequestBody Integer[] roles) {
         return userService.setRole(userId, roles);
     }
 
     @PostMapping("/resetPassword")
-    public ResultJson resetPassword(Integer id){
-        SystemUser systemUser = new SystemUser();
-        systemUser.setPassword(bCryptPasswordEncoder.encode(UserConsts.DEFAULT_PASSWORD));
-        systemUser.setId(id);
-        userService.updateById(systemUser);
+    public ResultJson resetPassword(Integer id) {
+        userService.resetPassword(id,bCryptPasswordEncoder.encode(UserConsts.DEFAULT_PASSWORD));
         return ResultJson.success();
     }
 }

@@ -3,7 +3,6 @@ package com.wjl.system.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wjl.common.ResultJson;
-import com.wjl.system.entity.SystemAuthorization;
 import com.wjl.system.entity.SystemRole;
 import com.wjl.system.entity.SystemRoleAuthorization;
 import com.wjl.system.entity.SystemUserRole;
@@ -14,6 +13,11 @@ import com.wjl.system.service.ISystemAuthorizationService;
 import com.wjl.system.service.ISystemRoleAuthorizationService;
 import com.wjl.system.service.ISystemRoleService;
 import com.wjl.system.service.ISystemUserRoleService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.tags.Tags;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,12 +36,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
- *  前端控制器
+ *  角色控制器
  * </p>
  *
  * @author jay
  * @since 2022-04-02
  */
+@Tags({@Tag(name = "角色管理")})
 @RestController
 @RequestMapping("/system/role")
 public class SystemRoleController extends BaseController<SystemRole> {
@@ -60,6 +65,10 @@ public class SystemRoleController extends BaseController<SystemRole> {
         this.roleAuthorizationService = roleAuthorizationService;
     }
 
+    @Operation(summary = "角色列表", description = "角色分页列表，查询条件角色编码")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "roleCode", value = "角色编码", required = false, dataType = "String")
+    })
     @PreAuthorize("hasAuthority('system-role-list')")
     @PostMapping("list")
     public ResultJson list(String roleCode) {
@@ -128,7 +137,8 @@ public class SystemRoleController extends BaseController<SystemRole> {
     @PreAuthorize("hasAuthority('system-role-setAuth')")
     @GetMapping("getAuth/{id}")
     public ResultJson getAuth(@PathVariable String id) {
-        List<SystemAuthorizationExt> systemAuthorizationList = authorizationService.menuTreeList();
+        List<SystemAuthorizationExt> systemAuthorizationList =
+            authorizationService.menuTreeList(authorizationService.menuList());
         List<SystemRoleAuthorization> systemRoleAuthorizationList =
             roleAuthorizationService.list(new QueryWrapper<SystemRoleAuthorization>().eq(
                 "role_id", id));

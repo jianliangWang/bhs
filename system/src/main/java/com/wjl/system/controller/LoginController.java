@@ -4,6 +4,8 @@ import com.google.code.kaptcha.Producer;
 import com.wjl.common.ResultJson;
 import com.wjl.consts.CaptchaConsts;
 import com.wjl.system.utils.RedisUtil;
+import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.Operation;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Api(tags = "登录")
 @RestController
 public class LoginController {
 
@@ -25,6 +28,7 @@ public class LoginController {
     @Autowired
     private RedisUtil redisUtil;
 
+    @Operation(summary = "获取验证码")
     @GetMapping("/captcha")
     public ResultJson captcha() throws IOException {
         String captchaKey = UUID.randomUUID().toString();
@@ -38,7 +42,7 @@ public class LoginController {
 
         String base64Img = CaptchaConsts.IMAGE_TYPE + encoder.encodeToString(outputStream.toByteArray());
 
-        redisUtil.hset(CaptchaConsts.CAPTCHA_HASH_KEY, captchaKey, code, 300);
+        redisUtil.set(captchaKey, code, 300);
         Map<String, String> map = new HashMap<>();
         map.put(CaptchaConsts.CAPTCHA_KEY, captchaKey);
         map.put(CaptchaConsts.CAPTCHA_BASE64IMAGE, base64Img);
