@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wjl.system.mapper.system.SystemUserMapper">
+
+  <select id="getNavMenu" resultType="com.wjl.system.entity.extend.UserRoleAuth">
+    SELECT
+      distinct
+      r.name roleName,
+      r.`code` roleCode,
+      a.id,
+      a.`name`,
+      a.label,
+      a.`code`,
+      a.icon,
+      a.url,
+      a.parent_Code parentCode,
+      a.component,
+      a.type,
+      a.status
+    FROM
+      system_role r,
+      system_user_role ur,
+      system_role_authorization ra,
+      system_authorization a
+    WHERE
+        r.id=ur.role_id
+    AND ur.role_id = ra.role_id
+    AND ra.authorization_id = a.id
+    AND ur.user_id = #{userId}
+  </select>
+</mapper>

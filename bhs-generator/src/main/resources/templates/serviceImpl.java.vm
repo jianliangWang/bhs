@@ -1,0 +1,53 @@
+package ${package.ServiceImpl};
+
+import ${package.Entity}.${entity};
+import ${package.Mapper}.${table.mapperName};
+import ${package.Service}.${table.serviceName};
+import ${superServiceImplClassPackage};
+import org.springframework.stereotype.Service;
+
+/**
+ * <p>
+ * $!{table.comment} 服务实现类
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Service
+#if(${kotlin})
+open class ${table.serviceImplName} : ${superServiceImplClass}<${table.mapperName}, ${entity}>(), ${table.serviceName} {
+
+}
+#else
+public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.mapperName}, ${entity}> implements ${table.serviceName} {
+
+    @Autowired
+    private ${table.mapperName} ${table.entityPath}Mapper;
+
+    @Override
+    public IPage<${table.entityName}> list(Page<${table.entityName}> page){
+        return super.page(page);
+    }
+
+    @Override
+    public int add(${table.entityName} ${table.entityPath}){
+        return ${table.entityPath}Mapper.insert(${table.entityPath});
+    }
+
+    @Override
+     public int update(${table.entityName} ${table.entityPath}){
+        return ${table.entityPath}Mapper.updateById(${table.entityPath});
+    }
+
+    @Override
+    public ${table.entityName} getById(Integer id){
+         return ${table.entityPath}Mapper.selectById(id);
+    }
+
+    @Override
+    public int delete(Integer id){
+       return ${table.entityPath}Mapper.deleteById(id);
+    }
+}
+#end
