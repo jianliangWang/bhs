@@ -57,6 +57,13 @@ public class SystemBusinessDataServiceImpl extends ServiceImpl<SystemBusinessDat
             log.error(SystemBusinessEnum.TYPE_CODE_ERROR.getMsg());
             return SystemBusinessEnum.TYPE_CODE_ERROR;
         }
+        // 校验code是否存在
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("code", systemBusinessDataVO.getCode());
+        if (systemBusinessDataMapper.selectByMap(paramMap) != null){
+            log.error(SystemBusinessEnum.TYPE_CODE_ERROR.getMsg());
+            return SystemBusinessEnum.CODE_REPEAT_ERROR;
+        }
         SystemBusinessData systemBusinessData = new SystemBusinessData();
         BeanUtils.copyProperties(systemBusinessDataVO, systemBusinessData);
         systemBusinessData.setCreateDate(LocalDateTime.now());

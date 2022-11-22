@@ -6,6 +6,7 @@ package com.wjl.enums.system.result;
 public enum SystemBusinessEnum {
 
     SUCCESS(0, "操作成功"),
+    CODE_REPEAT_ERROR(640, "Code重复"),
     TYPE_CODE_REPEAT_ERROR(641,"添加类型失败，Code已经存在"),
     TYPE_ID_ERROR(642, "数据字典类型ID错误"),
     TYPE_DELETE_ERROR(651, "删除失败，有数据不能删除分类，清先删除数据"),
