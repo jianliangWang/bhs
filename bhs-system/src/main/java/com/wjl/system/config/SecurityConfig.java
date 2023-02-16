@@ -10,19 +10,24 @@ import com.wjl.system.security.LoginSuccessHandler;
 import com.wjl.system.security.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     private static final String[] URL_WHITELIST = {"/login", "/logout", "/captcha", "/favicon.ico", "/swagger-ui"
         + "/**", "/swagger-resources/**", "/v2/api-docs", "/v3/api-docs/**"};
@@ -37,21 +42,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 
-    private final UserDetailsServiceImpl userDetailsService;
-
     private final JwtLogoutSuccessHandler logoutSuccessHandler;
+
+    private final AuthenticationConfiguration authenticationConfiguration;
 
     public SecurityConfig(CaptchaFilter captchaFilter,
         LoginFailureHandler loginFailureHandler, LoginSuccessHandler loginSuccessHandler,
         JwtAccessDeniedHandler accessDeniedHandler, JwtAuthenticationEntryPoint authenticationEntryPoint,
-        UserDetailsServiceImpl userDetailsService, JwtLogoutSuccessHandler logoutSuccessHandler) {
+        JwtLogoutSuccessHandler logoutSuccessHandler, AuthenticationConfiguration authenticationConfiguration) {
         this.captchaFilter = captchaFilter;
         this.loginFailureHandler = loginFailureHandler;
         this.loginSuccessHandler = loginSuccessHandler;
         this.accessDeniedHandler = accessDeniedHandler;
         this.authenticationEntryPoint = authenticationEntryPoint;
-        this.userDetailsService = userDetailsService;
         this.logoutSuccessHandler = logoutSuccessHandler;
+        this.authenticationConfiguration = authenticationConfiguration;
     }
 
     @Bean
@@ -60,14 +65,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    AuthenticationManager authenticationManager() throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
     BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         /*允许跨域*/
-        http.cors()
+        return http.cors()
             .and().csrf().disable()
             /*登录*/
             .formLogin()
@@ -95,12 +105,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .addFilterBefore(captchaFilter, UsernamePasswordAuthenticationFilter.class)
             /*异常处理*/
             .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
-            .accessDeniedHandler(accessDeniedHandler);
-
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService);
+            .accessDeniedHandler(accessDeniedHandler).and().build();
     }
 }

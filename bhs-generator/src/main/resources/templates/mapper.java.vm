@@ -3,8 +3,8 @@ package ${package.Mapper};
 import ${package.Entity}.${entity};
 import ${superMapperClassPackage};
 #if(${mapperAnnotation})
-import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Component;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 #end
 
 /**

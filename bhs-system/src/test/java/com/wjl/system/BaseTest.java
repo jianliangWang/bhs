@@ -40,4 +40,13 @@ public class BaseTest {
                 .getContentAsString(StandardCharsets.UTF_8);
         System.out.println(res);
     }
+
+    protected void getNoParam(String postUrl) throws Exception {
+        String res =
+            mockMvc.perform(MockMvcRequestBuilders.get(postUrl).header("authorization",
+                    token))
+                .andExpect(MockMvcResultMatchers.status().isOk()).andReturn().getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        System.out.println(res);
+    }
 }

@@ -1,7 +1,13 @@
 package ${package.Controller};
 
-import com.wjl.common.ResultJson;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.wjl.common.system.ResultJson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 #if(${restControllerStyle})
@@ -24,6 +30,7 @@ import ${package.Service}.${table.serviceName};
  * @author ${author}
  * @since ${date}
  */
+@Api(tags = "")
 #if(${restControllerStyle})
 @RestController
 #else
@@ -39,28 +46,42 @@ public class ${table.controllerName} extends ${superControllerClass} {
 #else
 public class ${table.controllerName} extends  BaseController<${table.entityName}>  {
 #end
-    @Autowired
-    private ${table.serviceName} ${table.entityPath}Service;
 
+    private final Logger logger = LoggerFactory.getLogger(${table.controllerName}.class);
+
+    private final ${table.serviceName} ${table.entityPath}Service;
+
+    public ${table.controllerName}(${table.serviceName} ${table.entityPath}Service) {
+        this.${table.entityPath}Service = ${table.entityPath}Service;
+    }
+
+    @ApiOperation("列表")
     @PostMapping("list")
+    @PreAuthorize("hasAnyAuthority('-list')")
     public ResultJson list(){
         IPage<${table.entityName}> pageList = ${table.entityPath}Service.page(getPage());
         return ResultJson.success(pageList);
     }
 
+    @ApiOperation("新增")
     @PostMapping("add")
+    @PreAuthorize("hasAnyAuthority('-add')")
     public ResultJson add(${table.entityName} ${table.entityName}){
         ${table.entityPath}Service.save(${table.entityName});
         return ResultJson.success();
     }
 
+    @ApiOperation("修改")
     @PostMapping("update")
+    @PreAuthorize("hasAnyAuthority('-update')")
     public ResultJson update(${table.entityName} ${table.entityName}){
         ${table.entityPath}Service.updateById(${table.entityName});
         return ResultJson.success();
     }
 
+    @ApiOperation("删除")
     @PostMapping("delete")
+    @PreAuthorize("hasAnyAuthority('-delete')")
     public ResultJson delete(Integer id){
         ${table.entityPath}Service.removeById(id);
         return ResultJson.success();

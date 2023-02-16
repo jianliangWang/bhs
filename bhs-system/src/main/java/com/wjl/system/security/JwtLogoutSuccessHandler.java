@@ -27,7 +27,7 @@ public class JwtLogoutSuccessHandler extends LoginBaseHandler implements LogoutS
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-        throws IOException, ServletException {
+        throws IOException {
 
         if (authentication != null) {
             new SecurityContextLogoutHandler().logout(request, response, authentication);

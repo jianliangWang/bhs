@@ -1,10 +1,14 @@
 package ${package.ServiceImpl};
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import ${package.Entity}.${entity};
 import ${package.Mapper}.${table.mapperName};
 import ${package.Service}.${table.serviceName};
 import ${superServiceImplClassPackage};
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -22,8 +26,11 @@ open class ${table.serviceImplName} : ${superServiceImplClass}<${table.mapperNam
 #else
 public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.mapperName}, ${entity}> implements ${table.serviceName} {
 
-    @Autowired
-    private ${table.mapperName} ${table.entityPath}Mapper;
+    private final ${table.mapperName} ${table.entityPath}Mapper;
+
+    public ${table.serviceImplName}(${table.mapperName} ${table.entityPath}Mapper) {
+        this.${table.entityPath}Mapper = ${table.entityPath}Mapper;
+    }
 
     @Override
     public IPage<${table.entityName}> list(Page<${table.entityName}> page){

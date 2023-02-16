@@ -8,7 +8,7 @@ import java.util.Collections;
 public class GeneratorCode {
 
     public static void main(String[] args) {
-        FastAutoGenerator.create("jdbc:mysql://localhost:3306/system", "root", "123456")
+        FastAutoGenerator.create("jdbc:mysql://localhost:3306/edron", "root", "123456")
             // 全局配置
             .globalConfig(builder -> {
                 builder.enableSwagger()
@@ -24,7 +24,7 @@ public class GeneratorCode {
                     .pathInfo(Collections.singletonMap(OutputFile.xml, "/Users/jay/pojo")); // 设置mapperXml生成路径
             })
             .strategyConfig(builder -> {
-                builder.addInclude("system_business_data")
+                builder.addInclude("agent_user")
                         //.addTablePrefix("t_") // 增加过滤表前缀
                         //.addTableSuffix("_db") // 增加过滤表后缀
                         //.addFieldPrefix("t_") // 增加过滤字段前缀

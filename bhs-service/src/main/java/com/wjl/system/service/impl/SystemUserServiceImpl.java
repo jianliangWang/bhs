@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.edron.util.UserUtil;
 import com.wjl.common.system.ResultJson;
 import com.wjl.consts.system.UserConsts;
 import com.wjl.system.entity.SystemUser;
@@ -62,8 +63,7 @@ public class SystemUserServiceImpl extends ServiceImpl<SystemUserMapper, SystemU
 
     @Override
     public List<UserRoleAuth> listUserAuthMenus() {
-        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        int userId = getSystemUserByUsername(username).getId();
+        int userId = getSystemUserByUsername(UserUtil.getCurrentSystemUsername()).getId();
         List<UserRoleAuth> list = systemUserMapper.getNavMenu(userId);
         List<UserRoleAuth> resultList = list.parallelStream().map(item -> {
             List<UserRoleAuth> children =

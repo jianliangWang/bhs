@@ -34,7 +34,7 @@ public class BusinessDateTest extends BaseTest{
         businessDataVO.setName("停用");
         businessDataVO.setTypeCode("ceshi");
         businessDataVO.setValue("0");
-        businessDataVO.setSortId("1");
+        businessDataVO.setSortId(1);
         businessDataVO.setStatus("1");
         businessDataVO.setRemark("这是备注");
         businessDataVO.setDescription("这是描述");
@@ -42,6 +42,28 @@ public class BusinessDateTest extends BaseTest{
         postJson("/system/business/data/add", content);
     }
 
+
+    @Test
+    public void testUpdate() throws Exception{
+        SystemBusinessDataVO businessDataVO = new SystemBusinessDataVO();
+        businessDataVO.setId(6);
+        businessDataVO.setCode("qqqqq");
+        businessDataVO.setName("不停也不启用");
+        businessDataVO.setTypeCode("ceshi");
+        businessDataVO.setValue("0");
+        businessDataVO.setSortId(1);
+        businessDataVO.setStatus("1");
+        businessDataVO.setRemark("这是备注");
+        businessDataVO.setDescription("这是描述");
+        String content = new ObjectMapper().writeValueAsString(businessDataVO);
+        postJson("/system/business/data/update", content);
+    }
+
+    @Test
+    public void testDelete() throws Exception {
+
+        getNoParam("/system/business/data/delete/8");
+    }
 
     @Test
     public void testQueryById() throws Exception{

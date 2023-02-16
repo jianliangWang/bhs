@@ -23,7 +23,7 @@
     <fastjson.version>2.0.19</fastjson.version>
     <kaptcha.version>2.3.2</kaptcha.version>
     <springfox-boot-starter>3.0.0</springfox-boot-starter>
-    <org.apache.velocity.version>1.7</org.apache.velocity.version>
+    <org.apache.velocity.version>2.3</org.apache.velocity.version>
   </properties>
 
   <dependencyManagement>
@@ -85,7 +85,7 @@
       <!-- velocity -->
       <dependency>
         <groupId>org.apache.velocity</groupId>
-        <artifactId>velocity</artifactId>
+        <artifactId>spring-velocity-support</artifactId>
         <version>${org.apache.velocity.version}</version>
       </dependency>
 

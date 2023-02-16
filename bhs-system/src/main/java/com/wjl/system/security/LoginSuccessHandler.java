@@ -25,7 +25,7 @@ public class LoginSuccessHandler extends LoginBaseHandler implements Authenticat
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-        Authentication authentication) throws IOException, ServletException {
+        Authentication authentication) throws IOException {
         String username = authentication.getName();
         String token = jwtUtil.generateToken(username);
         redisUtil.set(UserConsts.USER_TOKEN_REDIS_KEY_PRE + username, token, jwtUtil.getExpire());

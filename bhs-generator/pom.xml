@@ -11,18 +11,25 @@
 
   <artifactId>generator</artifactId>
 
- <dependencies>
-   <dependency>
-     <groupId>com.wjl</groupId>
-     <artifactId>bhs-common</artifactId>
-     <version>1.0-SNAPSHOT</version>
-   </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>com.wjl</groupId>
+      <artifactId>bhs-common</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
 
-   <!-- velocity -->
-   <dependency>
-     <groupId>org.apache.velocity</groupId>
-     <artifactId>velocity</artifactId>
-   </dependency>
- </dependencies>
+    <!--生成代码所需要的包-->
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-generator</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- velocity -->
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>spring-velocity-support</artifactId>
+    </dependency>
+  </dependencies>
 
 </project>

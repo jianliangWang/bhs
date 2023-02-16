@@ -15,8 +15,7 @@ public class SystemBusinessDataVO {
     @NotBlank(message = "value不能为空")
     private String value;
 
-    @NotBlank(message = "序号不能为空")
-    private String sortId;
+    private Integer sortId;
 
     private String status;
 
@@ -58,11 +57,11 @@ public class SystemBusinessDataVO {
         this.value = value;
     }
 
-    public String getSortId() {
+    public Integer getSortId() {
         return sortId;
     }
 
-    public void setSortId(String sortId) {
+    public void setSortId(Integer sortId) {
         this.sortId = sortId;
     }
 
