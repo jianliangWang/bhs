@@ -8,7 +8,7 @@ import java.io.Serializable;
  * 业务处理失败错误码 默认 600
  * 更多错误码会定义错误码enums
  */
-public class ResultJson implements Serializable {
+public class ResultJson<T> implements Serializable {
 
     // 成功code
     private static final int SUCCESS_CODE = 200;
@@ -23,21 +23,21 @@ public class ResultJson implements Serializable {
 
     private String msg;
 
-    private Object data;
+    private T data;
 
-    public static ResultJson success() {
+    public static <T> ResultJson<T> success() {
         return success(null);
     }
 
-    public static ResultJson success(Object data) {
+    public static <T> ResultJson<T> success(T data) {
         return success("操作成功", data);
     }
 
-    public static ResultJson success(String msg, Object data) {
+    public static <T> ResultJson<T> success(String msg, T data) {
         return result(SUCCESS_CODE, msg, data);
     }
 
-    public static ResultJson fail(int code, String msg) {
+    public static <T> ResultJson<T> fail(int code, String msg) {
         return result(code, msg, null);
     }
 
@@ -46,7 +46,7 @@ public class ResultJson implements Serializable {
      * @param msg 失败原因
      * @return
      */
-    public static ResultJson fail(String msg) {
+    public static <T> ResultJson<T> fail(String msg) {
         return fail(FAIL_CODE, msg);
     }
 
@@ -55,16 +55,16 @@ public class ResultJson implements Serializable {
      * @param msg 异常值
      * @return
      */
-    public static ResultJson error(String msg) {
+    public static <T> ResultJson<T> error(String msg) {
         return error(ERROR_CODE, msg);
     }
 
-    public static ResultJson error(int code, String msg) {
+    public static <T> ResultJson<T> error(int code, String msg) {
         return result(code, msg, null);
     }
 
-    public static ResultJson result(int code, String msg, Object data) {
-        ResultJson result = new ResultJson();
+    public static <T> ResultJson<T> result(int code, String msg, T data) {
+        ResultJson<T> result = new ResultJson<>();
         result.setCode(code);
         result.setMsg(msg);
         result.setData(data);
@@ -87,11 +87,11 @@ public class ResultJson implements Serializable {
         this.msg = msg;
     }
 
-    public Object getData() {
+    public T getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(T data) {
         this.data = data;
     }
 }
